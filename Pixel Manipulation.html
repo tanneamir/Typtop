@@ -1,0 +1,137 @@
+
+<!-- saved from url=(0027)http://amirtanne.com/1.html -->
+<html><head><meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1">
+    <title>Pixel Manipulation</title>
+    <script type="text/javascript">
+        var can, ctx, theImage, pix, black,
+            red = [], green = [], blue = [], alpha = [], black_x = [], black_y = [], wave = [];
+ 
+        function init() {
+            can = document.getElementById("can");
+            ctx = can.getContext("2d");
+           
+            /*ctx.fillStyle = 'rgb(255,0,0)';
+            ctx.fillRect(0, 0, can.width, can.height);
+            ctx.fillStyle = 'rgb(0,255,0)';
+            ctx.fillRect(can.width / 3, 0, can.width * 1/3, can.height);
+            ctx.fillStyle = 'rgb(0,0,255)';
+            ctx.fillRect(0, 0, can.width * 1/3, can.height);
+           */
+            ctx.font = "bold 68px Georgia";
+            ctx.fillStyle = 'rgb(0,0,0)';
+            ctx.fillText("Dana and Amir and mike", 10, 100);
+            // Get pixel data for entire canvas.
+            theImage = ctx.getImageData(0, 0, can.width, can.height);
+            pix = theImage.data;
+            black = 0;
+            // Separate out red, green, blue, and alpha values.
+            // Every four values equals 1 pixel.
+            
+            for (i = 0; i < pix.length; i += 4) {
+                red[i / 4]   = pix[i];
+                green[i / 4] = pix[i + 1];
+                blue[i / 4]  = pix[i + 2];
+                alpha[i / 4] = pix[i + 3];
+                wave[i/4] = 0;
+                if (pix[i] == 0 && pix[i+1] == 0 && pix[i+2] == 0 && pix[i+3] == 255){
+                   black++
+               }
+            }
+            var rows_count = 1;
+            var pixel_counter = 0;
+            for (i = 0; i < pix.length/4; i++) {
+                 if (i/can.width>rows_count){
+                    rows_count++;
+                }
+                if (red[i] == 0 && green[i] == 0 && blue[i] == 0 && alpha[i] == 255){
+                    var pixel_y = rows_count;
+                    var pixel_x = can.width-((rows_count * can.width)-i);
+                   
+                    black_x[pixel_counter] = pixel_x;
+                    black_y[pixel_counter] = pixel_y;
+                    wave[pixel_x]++
+                    //console.log(pixel_counter + " - amount  |  " + black_x[pixel_counter] + " - width  |  "+ black_y[pixel_counter] +" - Height");
+                    pixel_counter++;
+                    //console.log(wave);
+                }
+            }
+        }
+
+        function waveForm1() {
+            //console.log(black_x.length);
+             
+            for ( var i = 0; i < can.width ; i++) {
+                if (wave[i] > 0){
+                    //console.log("on pixel width: " + i + "  amount: " + wave[i]);
+                    for ( var j = 0; j < wave[i] ; j++) {
+                        if (pix[i*4] == 0 && pix[i*4 + 1] == 0 && pix[i*4 + 2] == 0 && pix[i*4 + 3] == 0){
+                            pix[i*4] = 0;
+                            pix[i*4 + 1] = 0;
+                            pix[i*4 + 2] = 0;
+                            pix[i*4 + 3] = 255;
+                        } else{
+                            pix[i*4 + can.width*4*j] = 0;
+                            pix[i*4 + 1 + can.width*4*j] = 0;
+                            pix[i*4 + 2 + can.width*4*j] = 0;
+                            pix[i*4 + 3 + can.width*4*j] = 255;
+                        }
+                    }
+                }
+            }
+            ctx.putImageData(theImage, 0, 0);
+        }
+
+        function blackLine() {
+            for ( var i = 0; i < black*4 ; i++) {
+                createLine(i);
+            }
+            ctx.putImageData(theImage, 0, 0);
+        }
+        
+        function createLine(x){
+            pix[(x * 4)] = 0;
+            pix[(x * 4)+ 1] = 0;
+            pix[(x * 4)+ 2] = 0;
+            pix[(x * 4)+ 3] = 255;
+        }
+
+        function clearBlack() {
+            // Check each pixel's RGB value.
+            //alert("amount of black pixels: "+black);
+            for (var i = 0, len = can.width * can.height; i < len; i++) {
+                if (red[i] == 0 && green[i] == 0 && blue[i] == 0){
+                    pix[(i * 4)] = 255;
+                    pix[(i * 4)+ 1] = 255;
+                    pix[(i * 4)+ 2] = 255;
+               }
+
+            }
+             // Blit modified image object to screen.
+             ctx.putImageData(theImage,0,0);
+        }
+ 
+        function restoreBlack() {
+            for ( var i = 0, len = can.width * can.height; i < len; i++) {
+                if (red[i] == 0 && green[i] == 0 && blue[i] == 0){
+                    // Set alpha value for pixel to 0.
+                    pix[(i * 4)] = 0;
+                    pix[(i * 4)+ 1] = 0;
+                    pix[(i * 4)+ 2] = 0;
+                   // pix[(i * 4)+ 3] = 255;
+               }
+            }
+             ctx.putImageData(theImage, 0, 0);
+        }
+    </script>
+</head>
+<body onload="init()">
+    <canvas id="can" height="200" width="1400">
+    </canvas>
+    <br>
+    <input type="button" value="Wave" onclick="waveForm1()">
+    <!--<input type="button" value="Black Line" onClick="blackLine()" />-->
+    <input type="button" value="Clear Black" onclick="clearBlack()">
+    <input type="button" value="Restore Black" onclick="restoreBlack()">
+
+
+</body></html>
